@@ -42,9 +42,9 @@ export class ProductController {
     return this.productService.findOne(id)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() { data }: UpdateProductDto) {
-    return this.productService.update(id, { data })
+  @Patch('update/:id')
+  update(@Param('id') id: string, @Body() data: UpdateProductDto) {
+    return this.productService.update(id, data)
   }
 
   @Post('upload-img/:product_id')

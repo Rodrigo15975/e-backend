@@ -107,7 +107,7 @@ export class ProductService {
     )
   }
 
-  async update(id: string, { data }: UpdateProductDto) {
+  async update(id: string, data: UpdateProductDto) {
     if (!data) throw new BadRequestException('Data is required')
     const { name, price, description } = data
     const existingProduct = await this.prismaService.product.findUnique({
