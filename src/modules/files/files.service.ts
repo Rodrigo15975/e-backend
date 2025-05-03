@@ -11,11 +11,9 @@ import {
   Logger,
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-// import { MemoryStoredFile } from 'nestjs-form-data'
 import * as path from 'path'
 import { v4 as uuidV4 } from 'uuid'
 import { CreateFileDto } from './dto/create-file.dto'
-// import { HandleHttps } from './utils/handled-https'
 @Injectable()
 export class FilesService {
   private readonly logger: Logger = new Logger(FilesService.name)
