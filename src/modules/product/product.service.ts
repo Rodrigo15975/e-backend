@@ -64,6 +64,7 @@ export class ProductService {
     })
     if (!products || products.length === 0) {
       return {
+        message: 'Productos encontrados',
         data: [],
         status: HttpStatus.OK,
         count: 0,
@@ -187,12 +188,13 @@ export class ProductService {
     const product = await this.prismaService.productsImgs.delete({
       where: { id: id_image },
     })
-    if (!product) throw new BadRequestException('Producto no encontrado')
+    if (!product)
+      throw new BadRequestException('Producto con la imagen no encontrado')
     const { key_url_unique } = product
     await this.filesService.remove(key_url_unique)
     return HandleHttps.ResponseOK(
       product,
-      'Producto eliminado',
+      'Imagen del producto eliminada',
       HttpStatus.OK,
       ProductService.name,
     )
