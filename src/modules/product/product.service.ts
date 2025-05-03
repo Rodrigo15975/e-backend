@@ -76,6 +76,8 @@ export class ProductService {
         updatedAt: true,
         ProductsImgs: {
           select: {
+            id: true,
+            key_url_unique: true,
             url: true,
           },
         },
@@ -127,31 +129,28 @@ export class ProductService {
     )
   }
 
-  async uploadNewProductImg(
-    file: Express.Multer.File,
-    product_img_key: string,
-  ) {
-    const productImg = await this.prismaService.productsImgs.findUnique({
-      where: { id: product_img_key },
-      select: {
-        url: true,
-        id: true,
+  async uploadNewProductImg(file: Express.Multer.File, product_id: string) {
+    const { url, key_url_unique } = await this.filesService.create(
+      { file },
+      'ecommerce',
+    )
+    const productImg = await this.prismaService.product.update({
+      where: { id: product_id },
+      data: {
+        ProductsImgs: {
+          create: {
+            url,
+            key_url_unique,
+          },
+        },
       },
     })
     if (!productImg)
       throw new BadRequestException('Producto con la imagen no encontrada')
 
-    const { url, key_url_unique } = await this.filesService.create(
-      { file },
-      'ecommerce',
-    )
-    await this.prismaService.productsImgs.update({
-      where: { id: product_img_key },
-      data: { url, key_url_unique },
-    })
     return HandleHttps.ResponseOK(
       { url },
-      'Imagen actualizada',
+      'Imagen subida',
       HttpStatus.OK,
       ProductService.name,
     )
