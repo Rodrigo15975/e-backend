@@ -1,26 +1,98 @@
-import { Injectable } from '@nestjs/common'
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3'
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+} from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+// import { MemoryStoredFile } from 'nestjs-form-data'
+import * as path from 'path'
+import { v4 as uuidV4 } from 'uuid'
 import { CreateFileDto } from './dto/create-file.dto'
-import { UpdateFileDto } from './dto/update-file.dto'
-
+// import { HandleHttps } from './utils/handled-https'
 @Injectable()
 export class FilesService {
-  create(createFileDto: CreateFileDto) {
-    return 'This action adds a new file'
+  private readonly logger: Logger = new Logger(FilesService.name)
+  private readonly bucketName: string = ''
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly S3: S3Client,
+  ) {
+    this.bucketName = this.configService.getOrThrow<string>('S3_BUCKET_NAME')
+  }
+  async create(createFileDto: CreateFileDto, name: string) {
+    if (!name)
+      throw new BadRequestException({
+        message: "Name doesn't exist",
+        cause: name,
+        status: HttpStatus.BAD_REQUEST,
+      })
+    try {
+      const { file: image } = createFileDto
+      console.log(image)
+
+      const typeFile = path.extname(image.originalname)
+      const baseName = image.originalname.replace(typeFile, '')
+      const sanitizedBaseName = baseName
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-zA-Z0-9-_]/g, '')
+
+      const Key = `${name}/${uuidV4()}-${sanitizedBaseName}${typeFile}`
+
+      const command = this.createCommand(image, Key)
+      await this.S3.send(command)
+      const url = `https://${this.bucketName}.s3.amazonaws.com/${Key}`
+
+      return { url, key_url_unique: Key }
+    } catch (error) {
+      this.logger.error(error)
+      throw new HttpException(
+        'Error to upload file',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
   }
 
-  findAll() {
-    return `This action returns all files`
+  private createCommand(file: Express.Multer.File, Key: string) {
+    return new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read',
+      Metadata: {
+        'Content-Disposition': `attachment; filename="${file.originalname}"`,
+        'Content-Type': file.mimetype,
+      },
+    })
+  }
+  private deleteCommand(Key: string) {
+    return new DeleteObjectCommand({
+      Bucket: this.bucketName,
+      Key,
+    })
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} file`
-  }
-
-  update(id: number, updateFileDto: UpdateFileDto) {
-    return `This action updates a #${id} file`
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} file`
+  async remove(key: string) {
+    try {
+      const commandDelete = this.deleteCommand(key)
+      await this.S3.send(commandDelete)
+    } catch (error) {
+      this.logger.error(error, error, {
+        message: 'Error to be delete command file-remove',
+        service: FilesService.name,
+      })
+      throw new HttpException(
+        'Error to delete file',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
   }
 }

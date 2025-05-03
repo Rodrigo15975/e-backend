@@ -6,18 +6,30 @@ import {
   Patch,
   Param,
   Delete,
+  UseInterceptors,
+  UploadedFiles,
+  UploadedFile,
 } from '@nestjs/common'
 import { ProductService } from './product.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto)
+  @UseInterceptors(FilesInterceptor('images', 2))
+  create(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('data') createProductDto: string,
+  ) {
+    const parsedDto = JSON.parse(createProductDto) as CreateProductDto['data']
+    const dataDto: CreateProductDto = {
+      data: parsedDto,
+    }
+    return this.productService.create(dataDto, files)
   }
 
   @Get()
@@ -27,16 +39,31 @@ export class ProductController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id)
+    return this.productService.findOne(id)
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto)
+  update(@Param('id') id: string, @Body() { data }: UpdateProductDto) {
+    return this.productService.update(id, { data })
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id)
+  @UseInterceptors(FileInterceptor('image'))
+  @Patch('update-img/:product_id/:key_url')
+  updateProductImg(
+    @Param('product_id') product_id: string,
+    @Param('key_url') key: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.productService.updateProductImg(product_id, file, key)
+  }
+
+  @Delete(':product_id')
+  remove(@Param('product_id') id: string) {
+    return this.productService.remove(id)
+  }
+
+  @Delete('delete-img/:id_image')
+  removeImg(@Param('id_image') id_image: string) {
+    return this.productService.removeImg(id_image)
   }
 }
