@@ -20,7 +20,7 @@ export const InitialApp = async (app: INestApplication<any>) => {
   })
   Logger.debug('Enable cors Initialized !!!')
 
-  const PORT = Number(process.env.PORT) ?? 4000
+  const PORT = Number(process.env.PORT) || 4000
   app.setGlobalPrefix('api-v1')
   app.useGlobalPipes(
     new ValidationPipe({
