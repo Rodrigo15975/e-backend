@@ -171,9 +171,9 @@ export class ProductService {
     )
   }
 
-  async remove(id: string) {
+  async remove(product_id: string) {
     const product = await this.prismaService.product.delete({
-      where: { id },
+      where: { id: product_id },
     })
     if (!product) throw new BadRequestException('Producto no encontrado')
 

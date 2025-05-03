@@ -52,7 +52,7 @@ export class UserController {
   }
 
   @UseGuards(AuthUserGuard)
-  @Delete(':id_user')
+  @Delete('delete/:id_user')
   remove(@Param('id_user') id_user: string) {
     return this.userService.remove(id_user)
   }

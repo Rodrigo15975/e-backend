@@ -123,8 +123,10 @@ export class UserService {
   }
 
   async remove(id: string) {
-    await this.prismaService.user.delete({ where: { id } })
+    const user = await this.prismaService.user.delete({ where: { id } })
+    if (!user) throw new BadRequestException('Usuario no encontrado')
     return {
+      user,
       status: HttpStatus.OK,
       message: 'Usuario eliminado',
     }

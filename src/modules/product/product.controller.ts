@@ -56,9 +56,9 @@ export class ProductController {
     return this.productService.uploadNewProductImg(file, product_id)
   }
 
-  @Delete(':product_id')
-  remove(@Param('product_id') id: string) {
-    return this.productService.remove(id)
+  @Delete('delete/:product_id')
+  remove(@Param('product_id') product_id: string) {
+    return this.productService.remove(product_id)
   }
 
   @Delete('delete-img/:id_image')
