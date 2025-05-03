@@ -127,25 +127,19 @@ export class ProductService {
     )
   }
 
-  async updateProductImg(
-    product_id: string,
+  async uploadNewProductImg(
     file: Express.Multer.File,
     product_img_key: string,
   ) {
-    console.log(file)
-
     const productImg = await this.prismaService.productsImgs.findUnique({
       where: { id: product_img_key },
       select: {
         url: true,
         id: true,
-        key_url_unique: true,
       },
     })
     if (!productImg)
       throw new BadRequestException('Producto con la imagen no encontrada')
-    const { key_url_unique: key_url_delete } = productImg
-    await this.filesService.remove(key_url_delete)
 
     const { url, key_url_unique } = await this.filesService.create(
       { file },
