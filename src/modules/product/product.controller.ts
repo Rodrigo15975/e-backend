@@ -48,12 +48,12 @@ export class ProductController {
   }
 
   @UseInterceptors(FileInterceptor('image'))
-  @Patch('update-img/:key_url')
+  @Post('upload-img/:product_id')
   uploadNewProductImg(
-    @Param('key_url') key: string,
+    @Param('product_id') product_id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.productService.uploadNewProductImg(file, key)
+    return this.productService.uploadNewProductImg(file, product_id)
   }
 
   @Delete(':product_id')
