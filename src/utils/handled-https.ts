@@ -5,7 +5,7 @@ export class HandleHttps {
     data: T,
     message: string,
     statusCode: HttpStatus,
-    service: string,
+    service?: string,
   ) {
     return {
       message,

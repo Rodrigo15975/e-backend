@@ -59,9 +59,23 @@ export class ProductService {
   }
 
   async findAll() {
-    return this.prismaService.product.findMany({
+    const products = await this.prismaService.product.findMany({
       orderBy: [{ createdAt: 'desc' }, { updatedAt: 'desc' }],
     })
+    if (!products || products.length === 0) {
+      return {
+        data: [],
+        status: HttpStatus.OK,
+        count: 0,
+      }
+    }
+
+    return HandleHttps.ResponseOK(
+      products,
+      'Productos encontrados',
+      HttpStatus.OK,
+      ProductService.name,
+    )
   }
 
   async findOne(id: string) {

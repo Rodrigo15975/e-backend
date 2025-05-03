@@ -33,8 +33,6 @@ export class FilesService {
       })
     try {
       const { file: image } = createFileDto
-      console.log(image)
-
       const typeFile = path.extname(image.originalname)
       const baseName = image.originalname.replace(typeFile, '')
       const sanitizedBaseName = baseName
