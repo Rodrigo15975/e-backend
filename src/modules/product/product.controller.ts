@@ -9,11 +9,13 @@ import {
   UseInterceptors,
   UploadedFiles,
   UploadedFile,
+  Query,
 } from '@nestjs/common'
 import { ProductService } from './product.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
+import { ListProductDto } from './dto/list.dto'
 
 @Controller('product')
 export class ProductController {
@@ -33,8 +35,8 @@ export class ProductController {
   }
 
   @Get()
-  findAll() {
-    return this.productService.findAll()
+  findAll(@Query() listProductDto: ListProductDto) {
+    return this.productService.findAll(listProductDto)
   }
 
   @Get(':id')

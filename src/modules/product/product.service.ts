@@ -9,6 +9,7 @@ import { UpdateProductDto } from './dto/update-product.dto'
 import { PrismaService } from 'nestjs-prisma'
 import { FilesService } from '../files/files.service'
 import { HandleHttps } from 'src/utils/handled-https'
+import { ListProductDto } from './dto/list.dto'
 
 @Injectable()
 export class ProductService {
@@ -21,7 +22,7 @@ export class ProductService {
     createProductDto: CreateProductDto,
     files: Express.Multer.File[],
   ) {
-    const { name, price, description } = createProductDto.data
+    const { name, price, description, type_camera } = createProductDto.data
     const existingProduct = await this.prismaService.product.findUnique({
       where: { name },
     })
@@ -42,6 +43,7 @@ export class ProductService {
         name,
         price,
         description,
+        type_camera,
         ProductsImgs: {
           createMany: {
             data: urls,
@@ -58,11 +60,29 @@ export class ProductService {
     )
   }
 
-  async findAll() {
-    const products = await this.prismaService.product.findMany({
-      orderBy: [{ createdAt: 'desc' }, { updatedAt: 'desc' }],
-    })
-    if (!products || products.length === 0) {
+  async findAll(listProductDto: ListProductDto) {
+    const { page, size } = listProductDto
+    const { count, data } = await this.prismaService.$transaction(
+      async (prisma) => ({
+        data: await prisma.product.findMany({
+          skip: (page - 1) * size,
+          take: size,
+          include: {
+            ProductsImgs: {
+              select: {
+                id: true,
+                key_url_unique: true,
+                url: true,
+              },
+            },
+          },
+          orderBy: [{ createdAt: 'desc' }, { updatedAt: 'desc' }],
+        }),
+        count: await prisma.product.count(),
+      }),
+    )
+
+    if (!data || data.length === 0) {
       return {
         message: 'Productos encontrados',
         data: [],
@@ -71,12 +91,12 @@ export class ProductService {
       }
     }
 
-    return HandleHttps.ResponseOK(
-      products,
-      'Productos encontrados',
-      HttpStatus.OK,
-      ProductService.name,
-    )
+    return {
+      message: 'Productos encontrados',
+      status: HttpStatus.OK,
+      count,
+      data,
+    }
   }
 
   async findOne(id: string) {
@@ -89,6 +109,7 @@ export class ProductService {
         description: true,
         createdAt: true,
         updatedAt: true,
+        type_camera: true,
         ProductsImgs: {
           select: {
             id: true,
@@ -109,7 +130,7 @@ export class ProductService {
 
   async update(id: string, data: UpdateProductDto) {
     if (!data) throw new BadRequestException('Data is required')
-    const { name, price, description } = data
+    const { name, price, description, type_camera } = data
     const existingProduct = await this.prismaService.product.findUnique({
       where: { id },
     })
@@ -130,6 +151,7 @@ export class ProductService {
     const updatedProduct = await this.prismaService.product.update({
       where: { id },
       data: {
+        type_camera,
         name,
         price,
         description,

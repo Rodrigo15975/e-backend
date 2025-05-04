@@ -6,7 +6,7 @@ import {
   ValidateNested,
   IsOptional,
 } from 'class-validator'
-import { Type } from 'class-transformer'
+import { Transform, Type } from 'class-transformer'
 
 export class ProductDataDto {
   @IsNotEmpty()
@@ -16,12 +16,20 @@ export class ProductDataDto {
 
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }: { value: string }) => value.toLowerCase().trim())
   name: string
 
   @IsNotEmpty()
   @IsString()
   @IsOptional()
+  @Transform(({ value }: { value: string }) => value.toLowerCase().trim())
   description: string
+
+  @IsNotEmpty()
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }: { value: string }) => value.toLowerCase().trim())
+  type_camera: string
 
   @IsNotEmpty()
   @IsNumber()
