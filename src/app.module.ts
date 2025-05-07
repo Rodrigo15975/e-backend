@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module'
 import { RolesModule } from './modules/roles/roles.module'
 import { ProductModule } from './modules/product/product.module'
 import { FilesModule } from './modules/files/files.module'
+import { ClientModule } from './modules/client/client.module'
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,6 +21,7 @@ import { FilesModule } from './modules/files/files.module'
     RolesModule,
     ProductModule,
     FilesModule,
+    ClientModule,
   ],
   controllers: [],
   providers: [],
